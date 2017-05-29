@@ -31,5 +31,7 @@ private:
 	ATriggerVolume* PressurePlate;
 
 	UPROPERTY(EditAnywhere)
-	AActor* ActorThatOpens;
+	float MinMassRequiredForDoorToOpen = 70.f;
+
+	float GetTotalMassOnPlate();
 };
