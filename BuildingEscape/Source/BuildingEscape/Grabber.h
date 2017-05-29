@@ -5,6 +5,11 @@
 #include "Components/ActorComponent.h"
 #include "Grabber.generated.h"
 
+struct LineTraceRoute {
+	FVector start;
+	FVector end;
+};
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGESCAPE_API UGrabber : public UActorComponent
@@ -28,7 +33,8 @@ private:
 	void ConfigureInputComponent();
 	void GrabOn();
 	void GrabOff();
-	FHitResult LineTrace();
+	FHitResult GetPhysicsBodyByLineTrace();
+	LineTraceRoute GetLineTraceRoute();
 
 private:
 	float ViewRange = 100.f;

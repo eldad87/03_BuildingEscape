@@ -51,21 +51,15 @@ void UGrabber::ConfigureInputComponent()
 void UGrabber::GrabOn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab key pressed!"));
-	FHitResult HitResult = LineTrace();
+	FHitResult HitResult = GetPhysicsBodyByLineTrace();
 	if (HitResult.GetActor()) 
 	{
-		PhysicsHandle->GrabComponentAtLocation(
+		PhysicsHandle->GrabComponentAtLocationWithRotation(
 			HitResult.GetComponent(),
 			NAME_None,
-			HitResult.GetComponent()->GetOwner()->GetActorLocation()//, //HitResult.GetActor()->GetActorLocation()
-			//HitResult.GetComponent()->GetOwner()->GetActorRotation()
+			HitResult.GetComponent()->GetOwner()->GetActorLocation(),
+			HitResult.GetComponent()->GetOwner()->GetActorRotation()
 		);
-		/*PhysicsHandle->GrabComponent(
-			HitResult.GetComponent(),
-			NAME_None,
-			HitResult.GetComponent()->GetOwner()->GetActorLocation(), //HitResult.GetActor()->GetActorLocation()
-			true
-		);*/
 	}
 }
 
@@ -75,40 +69,16 @@ void UGrabber::GrabOff()
 	PhysicsHandle->ReleaseComponent();
 }
 
-FHitResult UGrabber::LineTrace()
+FHitResult UGrabber::GetPhysicsBodyByLineTrace()
 {
-	/// Get player view point
-	FVector PlayerViewPointLocation;
-	FRotator PlayerViewPointRotation;
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
-		PlayerViewPointLocation,
-		PlayerViewPointRotation
-	);
-
-	//UE_LOG(LogTemp, Warning, TEXT("Location: %s, Position: %s"),
-	//	*PlayerViewPointLocation.ToString(), *PlayerViewPointRotator.ToString());
-
-	/// Debug line end
-	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * ViewRange;
-
-	/// Add debug line
-	DrawDebugLine(
-		GetWorld(),
-		PlayerViewPointLocation,
-		LineTraceEnd,
-		FColor(255, 0, 0),
-		false,
-		0.f,
-		0.f,
-		10.f
-	);
+	LineTraceRoute LTRoute = GetLineTraceRoute();
 
 	FHitResult HitResult;
 	FCollisionQueryParams CollissionQueryParams(FName(TEXT("")), false, GetOwner());
 	GetWorld()->LineTraceSingleByObjectType(
 		OUT HitResult,
-		PlayerViewPointLocation,
-		LineTraceEnd,
+		LTRoute.start,
+		LTRoute.end,
 		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
 		CollissionQueryParams
 	);
@@ -120,11 +90,8 @@ FHitResult UGrabber::LineTrace()
 	return HitResult;
 }
 
-// Called every frame
-void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+LineTraceRoute UGrabber::GetLineTraceRoute()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
 	/// Get player view point
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
@@ -133,14 +100,21 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 		PlayerViewPointRotation
 	);
 
-	//UE_LOG(LogTemp, Warning, TEXT("Location: %s, Position: %s"),
-	//	*PlayerViewPointLocation.ToString(), *PlayerViewPointRotator.ToString());
+	LineTraceRoute LineTraceRouteStruct;
+	LineTraceRouteStruct.start = PlayerViewPointLocation;
+	LineTraceRouteStruct.end = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * ViewRange;;
 
-	/// Debug line end
-	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * ViewRange;
+	return LineTraceRouteStruct;
+}
+
+// Called every frame
+void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (PhysicsHandle->GrabbedComponent)
 	{
-		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+		LineTraceRoute LTRoute = GetLineTraceRoute();
+		PhysicsHandle->SetTargetLocation(LTRoute.end);
 	}
 }
