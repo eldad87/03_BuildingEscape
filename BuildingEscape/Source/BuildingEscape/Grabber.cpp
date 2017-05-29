@@ -51,20 +51,32 @@ void UGrabber::ConfigureInputComponent()
 void UGrabber::GrabOn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab key pressed!"));
+	FHitResult HitResult = LineTrace();
+	if (HitResult.GetActor()) 
+	{
+		PhysicsHandle->GrabComponentAtLocation(
+			HitResult.GetComponent(),
+			NAME_None,
+			HitResult.GetComponent()->GetOwner()->GetActorLocation()//, //HitResult.GetActor()->GetActorLocation()
+			//HitResult.GetComponent()->GetOwner()->GetActorRotation()
+		);
+		/*PhysicsHandle->GrabComponent(
+			HitResult.GetComponent(),
+			NAME_None,
+			HitResult.GetComponent()->GetOwner()->GetActorLocation(), //HitResult.GetActor()->GetActorLocation()
+			true
+		);*/
+	}
 }
 
 void UGrabber::GrabOff()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab key released!"));
+	PhysicsHandle->ReleaseComponent();
 }
 
-// Called every frame
-void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+FHitResult UGrabber::LineTrace()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
-
 	/// Get player view point
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
@@ -103,13 +115,32 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 
 	AActor* ActorHit = HitResult.GetActor();
 	if (ActorHit) {
-		if (PrevActorHit != ActorHit) {
-			UE_LOG(LogTemp, Warning, TEXT("Hit Result: %s"), *ActorHit->GetName());
-			PrevActorHit = ActorHit;
-		}
-	} else if (PrevActorHit) {
-		UE_LOG(LogTemp, Warning, TEXT("Hit is lost"));
-		PrevActorHit = nullptr;
+		UE_LOG(LogTemp, Warning, TEXT("Hit Result: %s"), *ActorHit->GetName());
 	}
+	return HitResult;
 }
 
+// Called every frame
+void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	/// Get player view point
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+		PlayerViewPointLocation,
+		PlayerViewPointRotation
+	);
+
+	//UE_LOG(LogTemp, Warning, TEXT("Location: %s, Position: %s"),
+	//	*PlayerViewPointLocation.ToString(), *PlayerViewPointRotator.ToString());
+
+	/// Debug line end
+	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * ViewRange;
+
+	if (PhysicsHandle->GrabbedComponent)
+	{
+		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+	}
+}

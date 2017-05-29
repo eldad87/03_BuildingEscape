@@ -28,10 +28,10 @@ private:
 	void ConfigureInputComponent();
 	void GrabOn();
 	void GrabOff();
+	FHitResult LineTrace();
 
 private:
 	float ViewRange = 100.f;
-	AActor* PrevActorHit = nullptr;
 
 	UPhysicsHandleComponent* PhysicsHandle = nullptr;
 	UInputComponent* Input = nullptr;
