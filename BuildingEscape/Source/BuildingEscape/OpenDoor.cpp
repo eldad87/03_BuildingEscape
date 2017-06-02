@@ -20,6 +20,14 @@ UOpenDoor::UOpenDoor()
 void UOpenDoor::BeginPlay()
 {
 	Super::BeginPlay();
+	CheckForPressurePlate();
+}
+
+void UOpenDoor::CheckForPressurePlate()
+{
+	if (!PressurePlate) {
+		UE_LOG(LogTemp, Error, TEXT("PressurePlate not defind for %s Component within %s"), *GetName(), *GetOwner()->GetName());
+	}
 }
 
 void UOpenDoor::OpenDoor()
@@ -48,6 +56,9 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 float UOpenDoor::GetTotalMassOnPlate()
 {
 	float TotalMass = 0.f;
+	if (!PressurePlate) {
+		return TotalMass;
+	}
 	TArray<AActor*> OverlappingActors;
 	PressurePlate->GetOverlappingActors(OUT OverlappingActors);
 	for (const AActor* Actor : OverlappingActors)

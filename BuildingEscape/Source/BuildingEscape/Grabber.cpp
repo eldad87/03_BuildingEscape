@@ -52,7 +52,7 @@ void UGrabber::GrabOn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab key pressed!"));
 	FHitResult HitResult = GetPhysicsBodyByLineTrace();
-	if (HitResult.GetActor()) 
+	if (HitResult.GetActor() && PhysicsHandle)
 	{
 		PhysicsHandle->GrabComponentAtLocationWithRotation(
 			HitResult.GetComponent(),
@@ -66,7 +66,9 @@ void UGrabber::GrabOn()
 void UGrabber::GrabOff()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab key released!"));
-	PhysicsHandle->ReleaseComponent();
+	if (PhysicsHandle) {
+		PhysicsHandle->ReleaseComponent();
+	}
 }
 
 FHitResult UGrabber::GetPhysicsBodyByLineTrace()
@@ -112,7 +114,7 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (PhysicsHandle->GrabbedComponent)
+	if (PhysicsHandle && PhysicsHandle->GrabbedComponent)
 	{
 		LineTraceRoute LTRoute = GetLineTraceRoute();
 		PhysicsHandle->SetTargetLocation(LTRoute.end);

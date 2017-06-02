@@ -28,10 +28,11 @@ public:
 		
 private:
 	UPROPERTY(EditAnywhere)
-	ATriggerVolume* PressurePlate;
+	ATriggerVolume* PressurePlate = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	float MinMassRequiredForDoorToOpen = 70.f;
 
 	float GetTotalMassOnPlate();
+	void CheckForPressurePlate();
 };
