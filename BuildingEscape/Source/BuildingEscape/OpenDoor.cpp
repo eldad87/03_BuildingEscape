@@ -30,16 +30,6 @@ void UOpenDoor::CheckForPressurePlate()
 	}
 }
 
-void UOpenDoor::OpenDoor()
-{
-	GetOwner()->SetActorRotation(FRotator(0.0f, 90.0f, 0.0f));
-}
-
-void UOpenDoor::CloseDoor()
-{
-	GetOwner()->SetActorRotation(FRotator(0.0f, 0.0f, 0.0f));
-}
-
 // Called every frame
 void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -47,9 +37,9 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 	// ...
 	if (GetTotalMassOnPlate() >= MinMassRequiredForDoorToOpen) {
-		OpenDoor();
+		OnOpen.Broadcast();
 	} else {
-		CloseDoor();
+		OnClose.Broadcast();
 	}
 }
 
